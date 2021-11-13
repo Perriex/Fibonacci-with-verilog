@@ -29,14 +29,14 @@ module StackController(clk, pushSig, popSig, readySig, pop, push, enF, enN, enRe
     always @(ps) begin
         {pushSrc, readySig, enF, enN, enRes, pop, push} = 0;
         case(ps)
-            START   : readySig   = 1;
-            POPFLAG : pop        = 1; enF       = 1;
-            POPRET  : pop        = 1; enRes     = 1;
-            POPN    : pop        = 1; enN       = 1;
-            PUSHFLAG: push       = 1; pushSrc   = 0;
-            PUSHRET : push       = 1; pushSrc   = 2;
-            PUSHN   : push       = 1; pushSrc   = 1;
-            CONFIRM : readySig   = 1;
+            START   :begin readySig   = 1;                   end
+            POPFLAG :begin pop        = 1; enF       = 1;    end
+            POPRET  :begin pop        = 1; enRes     = 1;    end
+            POPN    :begin pop        = 1; enN       = 1;    end
+            PUSHFLAG:begin push       = 1; pushSrc   = 0;    end
+            PUSHRET :begin push       = 1; pushSrc   = 2;    end
+            PUSHN   :begin push       = 1; pushSrc   = 1;    end
+            CONFIRM :begin readySig   = 1;                   end
         endcase
         
     end
