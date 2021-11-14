@@ -111,7 +111,7 @@ Mux4to1 addlmux(.s(addls)
     , .in3(8'b0)   // 3 : none (0)
     , .c(addlop)
     );
-Mux4to1 addrmux(.s(addls)
+Mux4to1 addrmux(.s(addrs) // change from addls to addrs *
     , .in0(fout)   // 0 : flag
     , .in1(retout) // 1 : return value
     , .in2(8'b1)   // 2 : 1
