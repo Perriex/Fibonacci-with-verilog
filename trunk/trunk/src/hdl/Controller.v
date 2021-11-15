@@ -11,13 +11,15 @@ module Controller(clk,
     addrs, addls,
     lt, gt, eq,
     flag, n,
+    rst,
     pushSig, popSig);
 
+    parameter wordsize = 8;
     input clk, readySig;// ready signal from stack
     
-    input lt, gt, eq;            // for n < N / 2 result
+    input lt, gt, eq, rst;            // for n < N / 2 result
 
-    input[7:0] flag, n;             // check for states
+    input[wordsize-1:0] flag, n;             // check for states
 
     output reg  addsub,          // choose to flag++ or n-flag or ret+res
             resld, resrst, // selector for reg res and enable and reset
@@ -62,7 +64,7 @@ module Controller(clk,
         } = 0;
         case(ps)
             START   :begin popSig  = 1;     end
-            CALRES  :begin addsub  = 0; addrs = {1'b1, flag[0] ~^ gt}; addls = 1; retld = 1; rets = 2; fld = 1;  end // cal mult
+            CALRES  :begin addsub  = 0; addrs = {1'b1, flag[0] ^ gt}; addls = 1; retld = 1; rets = 2; fld = 1; frst=rst; resrst = resrst; end // cal mult
             PUSHBF  :begin pushSig = 1;     end
             NEXTN   :begin addsub  = 0; addrs = 0; addls = 1; nld = 1; frst = 1; resrst = 1;  end // may be problem
             PUSHAF  :begin pushSig = 1;     end
@@ -74,7 +76,10 @@ module Controller(clk,
     end
 
     always@(posedge clk)begin
-		ps <= ns;
+        if (rst)
+            ps <= CALRES;
+        else
+		    ps <= ns;
 	end
 
 endmodule

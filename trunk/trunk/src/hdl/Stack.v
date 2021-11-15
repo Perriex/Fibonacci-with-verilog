@@ -1,14 +1,16 @@
 `timescale 1ns/1ns
 
-module Stack (clk, din, dout, push, pop);
+module Stack (clk, din, dout, push, pop, empty);
     
+    parameter size = 8;
     input push, pop, clk;
-    input [7:0] din;
+    input [size-1:0] din;
+    output empty;
 
-    output reg [7:0] dout;
+    output reg [size-1:0] dout;
     
-    reg [7:0] file[31:0];
-    reg [4:0] top = 0;
+    reg [size-1:0] file[255:0];
+    reg [7:0] top = 0;
 
     always @(posedge clk) begin
         if(push) begin
@@ -18,6 +20,7 @@ module Stack (clk, din, dout, push, pop);
         if(pop)
             top <= top - 1;
     end
-
+    
+    assign empty = top == 0;
     assign dout = file[top - 1];
 endmodule

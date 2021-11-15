@@ -1,8 +1,11 @@
 `timescale 1ns/1ns
 
-module Fib (clk);
+module Fib (clk, rst, ready, result);
 
-input clk;
+parameter wordsize = 10;
+input clk, rst;
+output ready;
+output[wordsize-1:0] result;
 
 wire [1:0] pushSrc;
 
@@ -16,7 +19,7 @@ StackController stackController(clk,
     pushSrc
     );
 
-wire[7:0] flag, n;
+wire[wordsize-1:0] flag, n;
 wire[1:0] rets, addrs, addls; 
 
 wire lt, gt, eq;
@@ -27,7 +30,7 @@ wire addsub,
     fld, frst
     ;                
 
-Controller controller(clk, 
+Controller #(wordsize) controller(clk, 
     addsub,
     readySig,
     resld, resrst,
@@ -38,9 +41,10 @@ Controller controller(clk,
     addrs, addls,
     lt, gt, eq,
     flag, n,
+    rst,
     pushSig, popSig);
 
-Datapath datapath(clk
+Datapath #(wordsize) datapath(clk
     , push, pop             
     , addsub                
     , ~readySig, resld | enRes, resrst   
@@ -51,6 +55,8 @@ Datapath datapath(clk
     , lt, gt, eq            
     , flag, n                  
     , pushSrc
+    , ready
+    , result
 );
     
 endmodule
