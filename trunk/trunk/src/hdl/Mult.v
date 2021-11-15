@@ -7,6 +7,6 @@ output [size-1:0] res;
 
 wire [size* 2 - 1: 0] calcres;
 assign calcres = left * right;
-assign res = calcres[7:0];
+assign res = calcres[size-1:0];
 
 endmodule

@@ -10,9 +10,11 @@ module Datapath(clk         //system clock
     , addrs, addls          // alu left and right op selectors
     , lt, gt, eq            // n < N / 2 Results
     , f, n                  // flag and argument n values 
-    , ss                    // stack input selector for push
+    , ss, ready             // stack input selector for push
+    , result
     );                      
 
+parameter wordsize = 8;
 input clk, push, pop, addsub
     , ress, resld, resrst
     , retld, retrst
@@ -22,23 +24,23 @@ input clk, push, pop, addsub
 
 input [1:0] rets, addrs, addls, ss;
 
-output lt, gt, eq;
-output [7:0] n, f;
+output lt, gt, eq, ready;
+output [wordsize-1:0] n, f, result;
 
-reg [7:0] N = 8'b10;
+reg [wordsize-1:0] N = 8'b10;
 
-wire [7:0] din, dout, addr, multr;
-wire [7:0] nin, nout;
+wire [wordsize-1:0] din, dout, addr, multr;
+wire [wordsize-1:0] nin, nout;
 /*
     0 : adder result
     1 : stack data
 */
-Mux nmux(.s(ns)
+Mux #(wordsize) nmux(.s(ns)
     , .a(addr)
     , .b(dout)
     , .c(nin)
     );
-EnRegister nreg(.clk(clk)
+EnRegister #(wordsize) nreg(.clk(clk)
     , .pi(nin)
     , .po(nout)
     , .en(nld)
@@ -46,15 +48,15 @@ EnRegister nreg(.clk(clk)
     );
 assign n = nout;
 
-wire [7:0] fin, fout, fincres;
+wire [wordsize-1:0] fin, fout, fincres;
 
-Inc finc(fout, fincres);
-Mux fmux(.s(fs)
+Inc #(wordsize) finc(fout, fincres);
+Mux #(wordsize) fmux(.s(fs)
     , .a(fincres) // 0 : flag + 1
     , .b(dout) // 1 : stack data
     , .c(fin)
     );
-EnRegister freg(.clk(clk)
+EnRegister #(wordsize) freg(.clk(clk)
     , .pi(fin)
     , .po(fout)
     , .en(fld)
@@ -62,78 +64,80 @@ EnRegister freg(.clk(clk)
     );
 assign f = fout;
 
-wire [7:0] resin, resout;
-Mux resmux(.s(ress) // need to add from mult *
+wire [wordsize-1:0] resin, resout;
+Mux #(wordsize) resmux(.s(ress) // need to add from mult *
     , .a(addr) // 0 : adder result
     , .b(dout) // 1 : stack data
     , .c(resin)
     );
-EnRegister resreg(.clk(clk)
+EnRegister #(wordsize) resreg(.clk(clk)
     , .pi(resin)
     , .po(resout)
     , .en(resld)
     , .rst(resrst)
     );
 
-wire [7:0] retin, retout;
-Mux4to1 retmux(.s(rets)
-    , .in0(8'b1)  // 0 : 1
+wire [wordsize-1:0] retin, retout;
+Mux4to1 #(wordsize) retmux(.s(rets)
+    , .in0(1)  // 0 : 1
     , .in1(addr)  // 1 : adder result
     , .in2(multr) // 2 : mult result // it is exta *
     , .in3(resout)  // 3 : result
     , .c(retin)
     );
-EnRegister retreg(.clk(clk)
+EnRegister #(wordsize) retreg(.clk(clk)
     , .pi(retin)
     , .po(retout)
     , .en(retld)
     , .rst(retrst)
     );
+assign result = retout;
 
-Mux4to1 smux(.s(ss)
+Mux4to1 #(wordsize) smux(.s(ss)
     , .in0(fout)   // 0 : flag
     , .in1(nout)   // 1 : argument n
     , .in2(resout) // 2 : result
-    , .in3(8'b0)   // 3 : none(0)
+    , .in3(0)   // 3 : none(0)
     , .c(din)
     );
-Stack stack(
+Stack #(wordsize) stack(
     .clk(clk),
     .din(din), 
     .dout(dout), 
     .push(push), 
-    .pop(pop)
+    .pop(pop),
+    .empty(ready)
 );
 
 
-wire [7:0] addlop, addrop;
-Mux4to1 addlmux(.s(addls)
-    , .in0(8'b0)   // 0 : none(0)
+wire [wordsize-1:0] addlop, addrop;
+Mux4to1 #(wordsize) addlmux(.s(addls)
+    , .in0(0)   // 0 : none(0)
     , .in1(nout)   // 1 : argument n
     , .in2(resout) // 2 : result
-    , .in3(8'b0)   // 3 : none (0)
+    , .in3(0)   // 3 : none (0)
     , .c(addlop)
     );
-Mux4to1 addrmux(.s(addrs) // change from addls to addrs *
+Mux4to1 #(wordsize) addrmux(.s(addrs) // change from addls to addrs *
     , .in0(fout)   // 0 : flag
     , .in1(retout) // 1 : return value
-    , .in2(8'b1)   // 2 : 1
-    , .in3(8'b10)  // 3 : 2
+    , .in2(1)   // 2 : 1
+    , .in3(2)  // 3 : 2
     , .c(addrop)
     );
-AddSub alu(.left(addlop) // can get from res and ret and push in ret *
+AddSub #(wordsize) alu(.left(addlop) // can get from res and ret and push in ret *
     , .right(addrop)
     , .res(addr)
     , .addsub(addsub)
     );
 
-Mult mult(.left(retout) // get from res and n and push in res *
+Mult #(wordsize) mult(.left(retout) // get from res and n and push in res *
     , .right(addr) //change to n *
     , .res(multr)
     );
 
-Comp comp(.left(n)
-    , .right({1'b0, N[6:0]})
+Comp #(wordsize) comp(.left(n)
+    , .right({1'b0, N[wordsize-1:1]})
     , .gt(gt)
     , .eq(eq)
     , .lt(lt));

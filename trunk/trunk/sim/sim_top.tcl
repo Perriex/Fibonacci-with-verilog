@@ -4,7 +4,7 @@
 	exec vlib work
 	vmap work work
 	
-	set TB					"tb_file_name"
+	set TB					"TB"
 	set hdl_path			"../src/hdl"
 	set inc_path			"../src/inc"
 	
@@ -13,10 +13,9 @@
 
 #============================ Add verilog files  ===============================
 # Pleas add other module here	
-	vlog 	+acc -incr -source  +define+SIM 	$hdl_path/verilog_file_name.v
-	vlog 	+acc -incr -source  +define+SIM 	$inc_path/implementation_option.vh
-		
+	vlog 	+acc -incr -source  +define+SIM 	$hdl_path/*.v
 	vlog 	+acc -incr -source  +incdir+$inc_path +define+SIM 	./tb/$TB.v
+	
 	onerror {break}
 
 #================================ simulation ====================================
@@ -29,6 +28,12 @@
 
 	add wave -hex -group 	 	{TB}				sim:/$TB/*
 	add wave -hex -group 	 	{top}				sim:/$TB/uut/*	
+	add wave -hex -group 	 	{stack}				sim:/$TB/uut/datapath/stack/*	
+	add wave -hex -group 	 	{registers}		    sim:/$TB/uut/datapath/nreg/* \
+													sim:/$TB/uut/datapath/freg/* \
+													sim:/$TB/uut/datapath/resreg/* \
+													sim:/$TB/uut/datapath/retreg/* \
+
 	add wave -hex -group -r		{all}				sim:/$TB/*
 
 #=========================== Configure wave signals =============================
