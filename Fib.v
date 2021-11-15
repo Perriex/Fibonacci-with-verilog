@@ -24,7 +24,7 @@ wire addsub,
     resld, resrst,
     retld, retrst,
     nld, nrst, 
-    fld, frst,
+    fld, frst
     ;                
 
 Controller controller(clk, 

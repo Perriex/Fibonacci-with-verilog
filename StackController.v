@@ -36,19 +36,19 @@ module StackController(clk,                 // system clk
        endcase 
     end
 
-    always @(ps) begin
+    always @(ps, pushSig, popSig) begin
         {pushSrc, readySig, 
          enF, enN, enRes,
          pop, push } = 0;
         case(ps)
-            START   :begin readySig   = 1;                   end
-            POPFLAG :begin pop        = 1; enF       = 1;    end
-            POPRES  :begin pop        = 1; enRes     = 1;    end
-            POPN    :begin pop        = 1; enN       = 1;    end
-            PUSHN   :begin push       = 1; pushSrc   = 1;    end
-            PUSHRET :begin push       = 1; pushSrc   = 2;    end
-            PUSHFLAG:begin push       = 1; pushSrc   = 0;    end
-            CONFIRM :begin readySig   = 1;                   end
+            START   :begin readySig   = 1 ^ (pushSig | popSig); end
+            POPFLAG :begin pop        = 1; enF       = 1;       end
+            POPRES  :begin pop        = 1; enRes     = 1;       end
+            POPN    :begin pop        = 1; enN       = 1;       end
+            PUSHN   :begin push       = 1; pushSrc   = 1;       end
+            PUSHRET :begin push       = 1; pushSrc   = 2;       end
+            PUSHFLAG:begin push       = 1; pushSrc   = 0;       end
+            CONFIRM :begin readySig   = 1;                      end
         endcase
         
     end

@@ -80,7 +80,7 @@ Mux4to1 retmux(.s(rets)
     , .in0(8'b1)  // 0 : 1
     , .in1(addr)  // 1 : adder result
     , .in2(multr) // 2 : mult result // it is exta *
-    , .in3(8'b0)  // 3 : none (0)
+    , .in3(resout)  // 3 : result
     , .c(retin)
     );
 EnRegister retreg(.clk(clk)
@@ -127,13 +127,13 @@ AddSub alu(.left(addlop) // can get from res and ret and push in ret *
     , .addsub(addsub)
     );
 
-Mult mult(.left(resout) // get from res and n and push in res *
+Mult mult(.left(retout) // get from res and n and push in res *
     , .right(addr) //change to n *
     , .res(multr)
     );
 
 Comp comp(.left(n)
-    , .right({0, N[6:0]})
+    , .right({1'b0, N[6:0]})
     , .gt(gt)
     , .eq(eq)
     , .lt(lt));

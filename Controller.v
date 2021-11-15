@@ -27,21 +27,19 @@ module Controller(clk,
             pushSig, popSig      // signals for stack controller
             ;                
 
-    output[1:0] rets,            // ret reg entry selector
+    output reg[1:0] rets,            // ret reg entry selector
             addrs, addls;        // controll entries to adder
 
-    reg[3:0] ps = 1, ns = 0;     //start from START
+    reg[2:0] ps = 2, ns = 0;     //start from START
 
-    parameter [2:0] 
-        INIT   = 0, START  = 1, CALRES = 2, PUSHBF  = 3, NEXTN = 4,
-        PUSHAF = 5, CALRET = 6, ASSING = 7, LESSONE = 8;
+    parameter [2:0] START  = 1, CALRES = 2, PUSHBF  = 3, NEXTN = 4,
+        PUSHAF = 5, CALRET = 6, ASSING = 7, LESSONE = 0;
 
-    always@(ps, readySig, n, flag, Ready)begin
+    always@(ps, readySig, n, flag)begin
        case(ps)
-            INIT    : ns = START; // extra
             START   : ns = readySig == 1 ? CALRES   : START;
             CALRES  : ns =  n    <= 1   ? LESSONE   :
-                            flag == 1   ? PUSHBF    :
+                            flag == 0   ? PUSHBF    :
                                           CALRET;
             PUSHBF  : ns = readySig == 1 ? NEXTN    : PUSHBF;
             NEXTN   : ns = PUSHAF ;
@@ -58,20 +56,19 @@ module Controller(clk,
           retld, retrst,
           nld, nrst,
           fld, frst,
-          pushSig, popSig 
+          pushSig, popSig,
           addrs, addls,
           rets
         } = 0;
         case(ps)
-            INIT    :begin      end //extra
             START   :begin popSig  = 1;     end
-            CALRES  :begin addsub  = 0; addrs = {1'b1, flag[0] ^ gt}; addls = 1; retld = 1; rets = 2; fld = 1;  end // cal mult
+            CALRES  :begin addsub  = 0; addrs = {1'b1, flag[0] ~^ gt}; addls = 1; retld = 1; rets = 2; fld = 1;  end // cal mult
             PUSHBF  :begin pushSig = 1;     end
-            NEXTN   :begin addsub  = 0; addrs = 0; addls = 1; nld = 1; frst = 1;  end // may be problem
+            NEXTN   :begin addsub  = 0; addrs = 0; addls = 1; nld = 1; frst = 1; resrst = 1;  end // may be problem
             PUSHAF  :begin pushSig = 1;     end
             CALRET  :begin addsub = 1; addrs = 1; addls = 2; resld = 1; end // new state - controller
-            ASSING  :begin rets = 1; retld = 1;      end // it is extra
-            LESSONE :begin rers = 0, retld = 1;      end
+            ASSING  :begin rets = 3; retld = 1;      end // it is extra
+            LESSONE :begin rets = 0; retld = 1;      end
         endcase
         
     end
