@@ -15,8 +15,6 @@ module StackController(clk,                 // system clk
                 enF, enN, enRes,
                 pop, push;
 
-
-
     reg[2:0] ps = 0, ns = 0;
 
     parameter [2:0] 

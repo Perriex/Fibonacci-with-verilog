@@ -2,11 +2,13 @@
 
 module Controller(clk, 
     addsub,
-    ress, resld, resrst,
+    readySig,
+    resld, resrst,
     retld, retrst,
-    ns, nld, nrst,
-    fs, fld, frst,
+    nld, nrst,
+    fld, frst,
     rets,
+    addrs, addls,
     lt, gt, eq,
     flag, n,
     pushSig, popSig);
@@ -18,10 +20,10 @@ module Controller(clk,
     input[7:0] flag, n;             // check for states
 
     output reg  addsub,          // choose to flag++ or n-flag or ret+res
-            ress, resld, resrst, // selector for reg res and enable and reset
+            resld, resrst, // selector for reg res and enable and reset
             retld, retrst,       // enable load reg return and reset
-            ns, nld, nrst,       // selector for reg n and enable and reset
-            fs, fld, frst,       // selector for reg flag and enable and reset
+            nld, nrst,       // selector for reg n and enable and reset
+            fld, frst,       // selector for reg flag and enable and reset
             pushSig, popSig      // signals for stack controller
             ;                
 
@@ -44,65 +46,38 @@ module Controller(clk,
             PUSHBF  : ns = readySig == 1 ? NEXTN    : PUSHBF;
             NEXTN   : ns = PUSHAF ;
             PUSHAF  : ns = readySig == 1 ? START    : PUSHAF;
-            CALRET  : ns = Ready == 1 ? flag == 2   ?  PUSHBF    : ASSING // add contoller
-                                    ;   CALRET;
+            CALRET  : ns = flag == 2  ?  PUSHBF : ASSING; // add contoller
             ASSING  : ns = START;
             LESSONE : ns = START;
        endcase 
     end
 
-    reg chooseN ;
     always @(ps) begin
         { addsub,
-          ress, resld, resrst,
+          resld, resrst,
           retld, retrst,
-          ns, nld, nrst,
-          fs, fld, frst,
+          nld, nrst,
+          fld, frst,
           pushSig, popSig 
           addrs, addls,
           rets
         } = 0;
-        chooseN = 0;
         case(ps)
             INIT    :begin      end //extra
             START   :begin popSig  = 1;     end
-            CALRES  :begin addsub  = 1; addrs = 2; addls = 0; fld = 1; fs =0;   end // cal mult
+            CALRES  :begin addsub  = 0; addrs = {1'b1, flag[0] ^ gt}; addls = 1; retld = 1; rets = 2; fld = 1;  end // cal mult
             PUSHBF  :begin pushSig = 1;     end
-            NEXTN   :begin addsub  = 0; addrs = 0; addls = 1; nld = 1; ns =0; frst = 1;  end // may be problem
+            NEXTN   :begin addsub  = 0; addrs = 0; addls = 1; nld = 1; frst = 1;  end // may be problem
             PUSHAF  :begin pushSig = 1;     end
-            CALRET  :begin chooseN = 1;     end // new state - controller
+            CALRET  :begin addsub = 1; addrs = 1; addls = 2; resld = 1; end // new state - controller
             ASSING  :begin rets = 1; retld = 1;      end // it is extra
             LESSONE :begin rers = 0, retld = 1;      end
         endcase
         
     end
 
-    // controller for deciding either n-1 * res or n - 2:
-    parameter[1:0] NEW = 0, CALMULT = 1, CALADD = 2, MINN = 3;
-    reg[3:0] ps2 = 0, ns2 = 0;
-    reg Ready = 0;
-    always @(posedge chooseN, gt, flag) begin
-        case(ps2) // if 0 n*f else n-1*f
-            NEW:    ns2 = chooseN == 1 ? gt ^ flag[0] ? MINN : CALMAT : NEW;
-            MINN  : ns2 = CALMAT ;
-            CALMAT: ns2 = CALADD ;
-            CALADD: ns2 = NEW   ;
-        case
-    end
-
-    always @(posedge chooseN) begin
-        Ready = 0;
-        case(ps2)
-            NEW   :begin Ready = 1; end
-            MINN  :begin addsub = 0; addls = 1; addrs = 2; nld = 1; ns =0;  end // n--
-            CALMAT:begin       end // process to mult reg n and reg res
-            CALADD:begin addls = 2; addrs = 1; rets = 1; retld = 1;  end // process to add reg res with ret
-        case
-    end
-
     always@(posedge clk)begin
 		ps <= ns;
-        ps2 <= ns2;
 	end
 
 endmodule
