@@ -11,7 +11,7 @@ module Datapath(clk         //system clock
     , lt, gt, eq            // n < N / 2 Results
     , f, n                  // flag and argument n values 
     , ss                    // stack input selector for push
-    );
+    );                      
 
 input clk, push, pop, addsub
     , ress, resld, resrst
@@ -46,9 +46,11 @@ EnRegister nreg(.clk(clk)
     );
 assign n = nout;
 
-wire [7:0] fin, fout;
+wire [7:0] fin, fout, fincres;
+
+Inc finc(fout, fincres);
 Mux fmux(.s(fs)
-    , .a(addr) // 0 : adder result
+    , .a(fincres) // 0 : flag + 1
     , .b(dout) // 1 : stack data
     , .c(fin)
     );
@@ -103,9 +105,10 @@ Stack stack(
     .pop(pop)
 );
 
+
 wire [7:0] addlop, addrop;
 Mux4to1 addlmux(.s(addls)
-    , .in0(fout)   // 0 : flag
+    , .in0(8'b0)   // 0 : none(0)
     , .in1(nout)   // 1 : argument n
     , .in2(resout) // 2 : result
     , .in3(8'b0)   // 3 : none (0)
