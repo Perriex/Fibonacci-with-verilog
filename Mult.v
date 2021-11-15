@@ -5,6 +5,8 @@ parameter size = 8;
 input [size-1:0] left, right;
 output [size-1:0] res;
 
-assign res = left * right;
-    
+wire [size* 2 - 1: 0] calcres;
+assign calcres = left * right;
+assign res = calcres[7:0];
+
 endmodule

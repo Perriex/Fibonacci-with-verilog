@@ -2,7 +2,7 @@
 
 module Inc(in, res);
 parameter size = 8;
-input addsub;
+
 input [size-1:0] in;
 output [size-1:0] res;
 
