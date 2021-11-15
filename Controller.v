@@ -44,9 +44,9 @@ module Controller(clk,
             PUSHBF  : ns = readySig == 1 ? NEXTN    : PUSHBF;
             NEXTN   : ns = PUSHAF ;
             PUSHAF  : ns = readySig == 1 ? START    : PUSHAF;
-            CALRET  : ns = Ready == 1 ? flag == 2   ?  PUSHBF    : START//ASSING // add contoller
+            CALRET  : ns = Ready == 1 ? flag == 2   ?  PUSHBF    : ASSING // add contoller
                                     ;   CALRET;
-           // ASSING  : ns = START;
+            ASSING  : ns = START;
             LESSONE : ns = START;
        endcase 
     end
@@ -71,7 +71,7 @@ module Controller(clk,
             NEXTN   :begin addsub  = 0; addrs = 0; addls = 1; nld = 1; ns =0; frst = 1;  end // may be problem
             PUSHAF  :begin pushSig = 1;     end
             CALRET  :begin chooseN = 1;     end // new state - controller
-            //ASSING  :begin rets = 1; retld = 1;      end // it is extra
+            ASSING  :begin rets = 1; retld = 1;      end // it is extra
             LESSONE :begin rers = 0, retld = 1;      end
         endcase
         
