@@ -9,7 +9,7 @@ module Datapath(clk         //system clock
     , fs, fld, frst         // flag register control for storage controller
     , addrs, addls          // alu left and right op selectors
     , lt, gt, eq            // n < N / 2 Results
-    , f, n                  // flag and argument n values
+    , f, n                  // flag and argument n values 
     , ss                    // stack input selector for push
     );
 
@@ -61,7 +61,7 @@ EnRegister freg(.clk(clk)
 assign f = fout;
 
 wire [7:0] resin, resout;
-Mux resmux(.s(ress)
+Mux resmux(.s(ress) // need to add from mult *
     , .a(addr) // 0 : adder result
     , .b(dout) // 1 : stack data
     , .c(resin)
@@ -77,7 +77,7 @@ wire [7:0] retin, retout;
 Mux4to1 retmux(.s(rets)
     , .in0(8'b1)  // 0 : 1
     , .in1(addr)  // 1 : adder result
-    , .in2(multr) // 2 : mult result
+    , .in2(multr) // 2 : mult result // it is exta *
     , .in3(8'b0)  // 3 : none (0)
     , .c(retin)
     );
@@ -118,14 +118,14 @@ Mux4to1 addrmux(.s(addrs) // change from addls to addrs *
     , .in3(8'b10)  // 3 : 2
     , .c(addrop)
     );
-AddSub alu(.left(addlop)
+AddSub alu(.left(addlop) // can get from res and ret and push in ret *
     , .right(addrop)
     , .res(addr)
     , .addsub(addsub)
     );
 
-Mult mult(.left(resout)
-    , .right(addr)
+Mult mult(.left(resout) // get from res and n and push in res *
+    , .right(addr) //change to n *
     , .res(multr)
     );
 
