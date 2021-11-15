@@ -8,7 +8,7 @@ module TB ();
  Fib fib(clk);
 
 
- reg[7:0] n = 8'b101;
+ reg[7:0] n = 8'b111;
 
  initial begin
     fib.datapath.nreg.po = n;
