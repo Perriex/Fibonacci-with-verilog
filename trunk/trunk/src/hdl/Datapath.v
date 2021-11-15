@@ -27,7 +27,11 @@ input [1:0] rets, addrs, addls, ss;
 output lt, gt, eq, ready;
 output [wordsize-1:0] n, f, result;
 
-reg [wordsize-1:0] N = 8'b10;
+reg [wordsize-1:0] zero = {wordsize{1'b0}};
+reg [wordsize-1:0] one = {{(wordsize-1){1'b0}}, 1'b1};
+reg [wordsize-1:0] two = {{(wordsize-2){1'b0}}, 2'b10};
+
+reg [wordsize-1:0] N;
 
 wire [wordsize-1:0] din, dout, addr, multr;
 wire [wordsize-1:0] nin, nout;
@@ -79,7 +83,7 @@ EnRegister #(wordsize) resreg(.clk(clk)
 
 wire [wordsize-1:0] retin, retout;
 Mux4to1 #(wordsize) retmux(.s(rets)
-    , .in0(1)  // 0 : 1
+    , .in0(one)  // 0 : 1
     , .in1(addr)  // 1 : adder result
     , .in2(multr) // 2 : mult result // it is exta *
     , .in3(resout)  // 3 : result
@@ -97,7 +101,7 @@ Mux4to1 #(wordsize) smux(.s(ss)
     , .in0(fout)   // 0 : flag
     , .in1(nout)   // 1 : argument n
     , .in2(resout) // 2 : result
-    , .in3(0)   // 3 : none(0)
+    , .in3(zero)   // 3 : none(0)
     , .c(din)
     );
 Stack #(wordsize) stack(
@@ -112,17 +116,17 @@ Stack #(wordsize) stack(
 
 wire [wordsize-1:0] addlop, addrop;
 Mux4to1 #(wordsize) addlmux(.s(addls)
-    , .in0(0)   // 0 : none(0)
+    , .in0(zero)   // 0 : none(0)
     , .in1(nout)   // 1 : argument n
     , .in2(resout) // 2 : result
-    , .in3(0)   // 3 : none (0)
+    , .in3(zero)   // 3 : none (0)
     , .c(addlop)
     );
 Mux4to1 #(wordsize) addrmux(.s(addrs) // change from addls to addrs *
     , .in0(fout)   // 0 : flag
     , .in1(retout) // 1 : return value
-    , .in2(1)   // 2 : 1
-    , .in3(2)  // 3 : 2
+    , .in2(one)   // 2 : 1
+    , .in3(two)  // 3 : 2
     , .c(addrop)
     );
 AddSub #(wordsize) alu(.left(addlop) // can get from res and ret and push in ret *

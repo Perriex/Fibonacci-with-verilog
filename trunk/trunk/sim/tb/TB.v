@@ -2,7 +2,7 @@
 
 module TB ();
 
- parameter wordsize = 32;
+ parameter wordsize = 128;
  reg clk = 1'b0 , rst = 1'b0;
  wire [wordsize-1: 0] result;
  wire ready;
